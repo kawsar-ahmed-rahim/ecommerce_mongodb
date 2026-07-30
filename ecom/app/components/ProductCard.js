@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useCart } from "./CartProvider";
 
 export default function ProductCard({ product }) {
-  const { addToCart } = useCart();
+  const { addToCart, wishlist, toggleWishlist } = useCart();
+  const isWishlisted = wishlist.some((item) => item._id === product._id);
 
   return (
     <article className="overflow-hidden rounded-3xl border border-[#f2dfcb] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
@@ -14,9 +15,18 @@ export default function ProductCard({ product }) {
         className="h-48 w-full object-cover"
       />
       <div className="p-5">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b85c38]">
-          {product.category || "Community Pick"}
-        </p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b85c38]">
+            {product.category || "Community Pick"}
+          </p>
+          <button
+            onClick={() => toggleWishlist(product)}
+            className="text-lg transition hover:scale-110"
+            aria-label="Toggle wishlist"
+          >
+            {isWishlisted ? "💛" : "🤍"}
+          </button>
+        </div>
         <h3 className="mt-2 text-xl font-semibold text-[#2f241d]">
           {product.title}
         </h3>
@@ -30,7 +40,7 @@ export default function ProductCard({ product }) {
           <div className="flex gap-2">
             <button
               onClick={() => addToCart(product)}
-              className="rounded-full bg-[#6a8f4c] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#55753a]"
+              className="rounded-full bg-[#b85c38] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#55753a]"
             >
               Add to cart
             </button>

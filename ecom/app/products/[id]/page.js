@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import { useCart } from "../../components/CartProvider";
 
@@ -9,13 +9,15 @@ export default function ProductPage({ params }) {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const resolvedParams = use(params);
+  const productId = resolvedParams?.id;
 
   useEffect(() => {
     async function loadProduct() {
       try {
         const res = await fetch("/api/products");
         const products = await res.json();
-        const current = products.find((item) => item._id === params.id);
+        const current = products.find((item) => item._id === productId);
         setProduct(current || null);
       } catch (error) {
         console.error(error);
@@ -24,8 +26,10 @@ export default function ProductPage({ params }) {
       }
     }
 
-    loadProduct();
-  }, [params.id]);
+    if (productId) {
+      loadProduct();
+    }
+  }, [productId]);
 
   if (loading) {
     return (

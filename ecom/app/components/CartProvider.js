@@ -6,6 +6,8 @@ const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
   const [items, setItems] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [deliverySlot, setDeliverySlot] = useState("Today, 6:00 PM - 8:00 PM");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -64,6 +66,16 @@ export function CartProvider({ children }) {
 
   const clearCart = () => setItems([]);
 
+  const toggleWishlist = (product) => {
+    setWishlist((currentWishlist) => {
+      const exists = currentWishlist.some((item) => item._id === product._id);
+      if (exists) {
+        return currentWishlist.filter((item) => item._id !== product._id);
+      }
+      return [...currentWishlist, product];
+    });
+  };
+
   const subtotal = useMemo(
     () => items.reduce((total, item) => total + item.price * item.quantity, 0),
     [items],
@@ -84,6 +96,10 @@ export function CartProvider({ children }) {
         clearCart,
         subtotal,
         itemCount,
+        wishlist,
+        toggleWishlist,
+        deliverySlot,
+        setDeliverySlot,
       }}
     >
       {children}

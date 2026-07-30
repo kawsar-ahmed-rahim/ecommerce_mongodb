@@ -6,12 +6,14 @@ import { useCart } from "./CartProvider";
 const links = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
+  { href: "/categories", label: "Categories" },
+  { href: "/wishlist", label: "Wishlist" },
   { href: "/cart", label: "Cart" },
   { href: "/checkout", label: "Checkout" },
 ];
 
 export default function Navbar() {
-  const { itemCount } = useCart();
+  const { itemCount, wishlist } = useCart();
 
   return (
     <header className="border-b border-amber-100 bg-[#fffaf4]">
@@ -36,6 +38,9 @@ export default function Navbar() {
           >
             Cart ({itemCount})
           </Link>
+          <span className="rounded-full border border-[#e0c5a3] bg-[#fff3e8] px-3 py-2 text-xs font-semibold text-[#6d3b1f]">
+            Wishlist ({wishlist.length})
+          </span>
         </nav>
       </div>
     </header>
