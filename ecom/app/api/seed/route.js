@@ -1,7 +1,9 @@
 import connectDB from "@/lib/db";
+import { ensureDefaultAdmin } from "@/lib/auth";
 import Product from "@/models/Product";
 export async function GET() {
   await connectDB();
+  await ensureDefaultAdmin();
   const products = await Product.find();
   await Product.deleteMany();
   await Product.insertMany([

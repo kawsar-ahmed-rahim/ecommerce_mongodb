@@ -1,15 +1,69 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import Navbar from "../components/Navbar";
 import { useCart } from "../components/CartProvider";
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
+  const [formData, setFormData] = useState({
+    customerName: "",
+    phone: "",
+    address: "",
+    deliveryNotes: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const handleOrder = () => {
-    clearCart();
-    alert("Order placed successfully! We will contact you shortly.");
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((current) => ({ ...current, [name]: value }));
+  };
+
+  const handleOrder = async () => {
+    if (!formData.customerName || !formData.phone || !formData.address) {
+      setMessage(
+        "Please fill in your name, phone number, and delivery address.",
+      );
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          items,
+          subtotal,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Order failed");
+      }
+
+      clearCart();
+      setMessage("Order placed successfully! We will contact you shortly.");
+      setFormData({
+        customerName: "",
+        phone: "",
+        address: "",
+        deliveryNotes: "",
+      });
+    } catch (error) {
+      setMessage(
+        error.message || "Something went wrong while placing the order.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,18 +98,30 @@ export default function CheckoutPage() {
               <h2 className="text-xl font-semibold">Delivery details</h2>
               <div className="mt-6 space-y-4">
                 <input
+                  name="customerName"
+                  value={formData.customerName}
+                  onChange={handleChange}
                   className="w-full rounded-2xl border border-[#e8d2bc] bg-[#fffaf4] px-4 py-3"
                   placeholder="Full name"
                 />
                 <input
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
                   className="w-full rounded-2xl border border-[#e8d2bc] bg-[#fffaf4] px-4 py-3"
                   placeholder="Phone number"
                 />
                 <input
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
                   className="w-full rounded-2xl border border-[#e8d2bc] bg-[#fffaf4] px-4 py-3"
                   placeholder="Society / Block / House number"
                 />
                 <textarea
+                  name="deliveryNotes"
+                  value={formData.deliveryNotes}
+                  onChange={handleChange}
                   className="min-h-28 w-full rounded-2xl border border-[#e8d2bc] bg-[#fffaf4] px-4 py-3"
                   placeholder="Delivery notes"
                 />
@@ -80,11 +146,15 @@ export default function CheckoutPage() {
                   <span>₹{subtotal.toFixed(2)}</span>
                 </div>
               </div>
+              {message ? (
+                <p className="mt-4 text-sm text-[#6d3b1f]">{message}</p>
+              ) : null}
               <button
                 onClick={handleOrder}
-                className="mt-6 w-full rounded-full bg-[#b85c38] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#9d4628]"
+                disabled={loading}
+                className="mt-6 w-full rounded-full bg-[#b85c38] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#9d4628] disabled:cursor-not-allowed disabled:bg-[#d9a37f]"
               >
-                Place order
+                {loading ? "Placing order..." : "Place order"}
               </button>
             </div>
           </div>

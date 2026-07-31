@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useCart } from "./CartProvider";
 
 const links = [
@@ -14,6 +15,27 @@ const links = [
 
 export default function Navbar() {
   const { itemCount, wishlist } = useCart();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.user) setUser(data.user);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    loadUser();
+  }, []);
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
+    window.location.href = "/";
+  };
 
   return (
     <header className="border-b border-amber-100 bg-[#fffaf4]">
@@ -41,6 +63,37 @@ export default function Navbar() {
           <span className="rounded-full border border-[#e0c5a3] bg-[#fff3e8] px-3 py-2 text-xs font-semibold text-[#6d3b1f]">
             Wishlist ({wishlist.length})
           </span>
+          {user ? (
+            <>
+              <Link
+                href="/profile"
+                className="text-sm font-semibold text-[#6d3b1f]"
+              >
+                {user.name || user.email}
+              </Link>
+              {user.role === "admin" ? (
+                <Link
+                  href="/admin"
+                  className="text-sm font-semibold text-[#6d3b1f]"
+                >
+                  Admin
+                </Link>
+              ) : null}
+              <button
+                onClick={handleLogout}
+                className="text-sm font-semibold text-[#b85c38]"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="text-sm font-semibold text-[#6d3b1f]"
+            >
+              Login
+            </Link>
+          )}
         </nav>
       </div>
     </header>
