@@ -31,14 +31,25 @@ export async function PUT(request, { params }) {
     }
 
     Object.assign(product, {
-      title: body.title ?? product.title,
-      description: body.description ?? product.description,
-      price: body.price ?? product.price,
-      category: body.category ?? product.category,
-      image: body.image ?? product.image,
-      stock: body.stock ?? product.stock,
-      tags: body.tags ?? product.tags,
-      isFeatured: body.isFeatured ?? product.isFeatured,
+      title:
+        body.title !== undefined ? String(body.title).trim() : product.title,
+      description:
+        body.description !== undefined
+          ? String(body.description).trim()
+          : product.description,
+      price: body.price !== undefined ? Number(body.price) : product.price,
+      category:
+        body.category !== undefined
+          ? String(body.category).trim()
+          : product.category,
+      image:
+        body.image !== undefined ? String(body.image).trim() : product.image,
+      stock: body.stock !== undefined ? Number(body.stock) : product.stock,
+      tags: body.tags !== undefined ? body.tags : product.tags,
+      isFeatured:
+        body.isFeatured !== undefined
+          ? Boolean(body.isFeatured)
+          : product.isFeatured,
     });
 
     await product.save();

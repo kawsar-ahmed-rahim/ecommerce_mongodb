@@ -11,6 +11,7 @@ const links = [
   { href: "/wishlist", label: "Wishlist" },
   { href: "/cart", label: "Cart" },
   { href: "/checkout", label: "Checkout" },
+  { href: "/orders", label: "Orders" },
 ];
 
 export default function Navbar() {

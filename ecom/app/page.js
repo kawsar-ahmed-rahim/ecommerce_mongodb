@@ -6,20 +6,39 @@ import ProductCard from "./components/ProductCard";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   useEffect(() => {
+    loadCategories();
     loadProducts();
   }, []);
 
-  async function loadProducts() {
+  async function loadCategories() {
+    try {
+      const res = await fetch("/api/categories");
+      const data = await res.json();
+      setCategories(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    }
+  }
+
+  async function loadProducts(category = selectedCategory) {
     setLoading(true);
 
     try {
       const res = await fetch("/api/products");
       const data = await res.json();
-      setProducts(data);
+      let nextProducts = Array.isArray(data) ? data : [];
+      if (category !== "All") {
+        nextProducts = nextProducts.filter(
+          (product) => product.category === category,
+        );
+      }
+      setProducts(nextProducts);
     } catch (err) {
       console.log("Error fetching products:", err);
     } finally {
@@ -45,7 +64,13 @@ export default function Home() {
       });
 
       const data = await res.json();
-      setProducts(Array.isArray(data) ? data : []);
+      let nextProducts = Array.isArray(data) ? data : [];
+      if (selectedCategory !== "All") {
+        nextProducts = nextProducts.filter(
+          (product) => product.category === selectedCategory,
+        );
+      }
+      setProducts(nextProducts);
     } catch (err) {
       console.log("Error searching products:", err);
     } finally {
@@ -127,6 +152,22 @@ export default function Home() {
           onSubmit={handleSearch}
           className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center"
         >
+          <select
+            value={selectedCategory}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSelectedCategory(value);
+              loadProducts(value);
+            }}
+            className="rounded-full border border-[#e5ccb4] bg-white px-4 py-3 text-sm text-[#2f241d] shadow-sm outline-none"
+          >
+            <option value="All">All categories</option>
+            {categories.map((category) => (
+              <option key={category._id} value={category.name}>
+                {category.name}
+              </option>
+            ))}
+          </select>
           <input
             type="text"
             value={query}

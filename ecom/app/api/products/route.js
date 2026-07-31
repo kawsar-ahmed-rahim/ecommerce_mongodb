@@ -16,7 +16,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    if (!body.title || !body.price) {
+    if (!body.title || body.price === undefined || body.price === "") {
       return Response.json(
         { error: "Title and price are required" },
         { status: 400 },
@@ -25,11 +25,11 @@ export async function POST(request) {
 
     await connectDB();
     const product = await Product.create({
-      title: body.title,
-      description: body.description || "",
+      title: String(body.title).trim(),
+      description: String(body.description || "").trim(),
       price: Number(body.price),
-      category: body.category || "General",
-      image: body.image || "",
+      category: String(body.category || "General").trim(),
+      image: String(body.image || "").trim(),
       stock: Number(body.stock || 0),
       tags: Array.isArray(body.tags) ? body.tags : [],
       isFeatured: Boolean(body.isFeatured),

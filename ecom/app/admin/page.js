@@ -16,6 +16,7 @@ export default function AdminPage() {
     category: "",
     image: "",
     stock: "",
+    imageFile: null,
   });
   const [categoryForm, setCategoryForm] = useState({
     name: "",
@@ -25,7 +26,7 @@ export default function AdminPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [editingProductId, setEditingProductId] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState({});
+  const [editingCategoryId, setEditingCategoryId] = useState(null);
 
   useEffect(() => {
     loadAdminData();
@@ -67,11 +68,25 @@ export default function AdminPage() {
     setMessage("");
 
     try {
+      let imageValue = productForm.image;
+      if (productForm.imageFile) {
+        const formData = new FormData();
+        formData.append("file", productForm.imageFile);
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
+        imageValue = uploadData.url;
+      }
+
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...productForm,
+          image: imageValue,
           price: Number(productForm.price),
           stock: Number(productForm.stock || 0),
         }),
@@ -86,6 +101,7 @@ export default function AdminPage() {
         category: "",
         image: "",
         stock: "",
+        imageFile: null,
       });
       setMessage("Product added successfully");
     } catch (error) {
@@ -98,19 +114,59 @@ export default function AdminPage() {
     setMessage("");
 
     try {
-      const res = await fetch("/api/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(categoryForm),
-      });
+      const res = await fetch(
+        editingCategoryId
+          ? `/api/categories/${editingCategoryId}`
+          : "/api/categories",
+        {
+          method: editingCategoryId ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(categoryForm),
+        },
+      );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Unable to create category");
-      setCategories((current) => [data.category, ...current]);
+      if (!res.ok) throw new Error(data.error || "Unable to manage category");
+      if (editingCategoryId) {
+        setCategories((current) =>
+          current.map((category) =>
+            category._id === editingCategoryId ? data.category : category,
+          ),
+        );
+        setMessage("Category updated successfully");
+      } else {
+        setCategories((current) => [data.category, ...current]);
+        setMessage("Category added successfully");
+      }
+      setEditingCategoryId(null);
       setCategoryForm({ name: "", description: "", image: "" });
-      setMessage("Category added successfully");
     } catch (error) {
       setMessage(error.message || "Unable to add category");
     }
+  }
+
+  async function handleDeleteCategory(categoryId) {
+    try {
+      const res = await fetch(`/api/categories/${categoryId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Unable to delete category");
+      setCategories((current) =>
+        current.filter((category) => category._id !== categoryId),
+      );
+      setMessage("Category deleted successfully");
+    } catch (error) {
+      setMessage(error.message || "Unable to delete category");
+    }
+  }
+
+  async function handleEditCategory(category) {
+    setEditingCategoryId(category._id);
+    setCategoryForm({
+      name: category.name || "",
+      description: category.description || "",
+      image: category.image || "",
+    });
   }
 
   async function handleDeleteProduct(productId) {
@@ -138,6 +194,7 @@ export default function AdminPage() {
       category: product.category || "",
       image: product.image || "",
       stock: product.stock ?? 0,
+      imageFile: null,
     });
   }
 
@@ -146,11 +203,25 @@ export default function AdminPage() {
     setMessage("");
 
     try {
+      let imageValue = productForm.image;
+      if (productForm.imageFile) {
+        const formData = new FormData();
+        formData.append("file", productForm.imageFile);
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
+        imageValue = uploadData.url;
+      }
+
       const res = await fetch(`/api/products/${editingProductId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...productForm,
+          image: imageValue,
           price: Number(productForm.price),
           stock: Number(productForm.stock || 0),
         }),
@@ -170,6 +241,7 @@ export default function AdminPage() {
         category: "",
         image: "",
         stock: "",
+        imageFile: null,
       });
       setMessage("Product updated successfully");
     } catch (error) {
@@ -311,7 +383,18 @@ export default function AdminPage() {
                   }))
                 }
                 className="w-full rounded-2xl border border-[#e8d2bc] bg-[#fffaf4] px-4 py-3"
-                placeholder="Image URL"
+                placeholder="Image URL or upload path"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setProductForm((current) => ({
+                    ...current,
+                    imageFile: e.target.files?.[0] || null,
+                  }))
+                }
+                className="w-full rounded-2xl border border-[#e8d2bc] bg-[#fffaf4] px-4 py-3"
               />
               <input
                 type="number"
@@ -344,6 +427,7 @@ export default function AdminPage() {
                         category: "",
                         image: "",
                         stock: "",
+                        imageFile: null,
                       });
                     }}
                     className="rounded-full border border-[#e8d2bc] px-4 py-3 font-semibold text-[#6d3b1f]"
@@ -356,7 +440,9 @@ export default function AdminPage() {
           </div>
 
           <div className="rounded-4xl border border-[#ecd8c3] bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold">Add category</h2>
+            <h2 className="text-xl font-semibold">
+              {editingCategoryId ? "Edit category" : "Add category"}
+            </h2>
             <form onSubmit={handleCategorySubmit} className="mt-4 space-y-3">
               <input
                 required
@@ -392,17 +478,69 @@ export default function AdminPage() {
                 className="w-full rounded-2xl border border-[#e8d2bc] bg-[#fffaf4] px-4 py-3"
                 placeholder="Image URL"
               />
-              <button
-                type="submit"
-                className="rounded-full bg-[#6a8f4c] px-4 py-3 font-semibold text-white"
-              >
-                Add category
-              </button>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  className="rounded-full bg-[#6a8f4c] px-4 py-3 font-semibold text-white"
+                >
+                  {editingCategoryId ? "Save category" : "Add category"}
+                </button>
+                {editingCategoryId ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingCategoryId(null);
+                      setCategoryForm({ name: "", description: "", image: "" });
+                    }}
+                    className="rounded-full border border-[#e8d2bc] px-4 py-3 font-semibold text-[#6d3b1f]"
+                  >
+                    Cancel
+                  </button>
+                ) : null}
+              </div>
             </form>
           </div>
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_1fr]">
+          <div className="rounded-4xl border border-[#ecd8c3] bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-semibold">Categories</h2>
+            <div className="mt-4 space-y-3">
+              {categories.map((category) => (
+                <div
+                  key={category._id}
+                  className="rounded-2xl border border-[#f2dfcb] p-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold text-[#2f241d]">
+                        {category.name}
+                      </p>
+                      <p className="text-sm text-[#6f5848]">
+                        {category.description || "No description"}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleEditCategory(category)}
+                        className="text-sm font-semibold text-[#b85c38]"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCategory(category._id)}
+                        className="text-sm font-semibold text-[#b85c38]"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="rounded-4xl border border-[#ecd8c3] bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold">Products</h2>
             <div className="mt-4 space-y-3">
