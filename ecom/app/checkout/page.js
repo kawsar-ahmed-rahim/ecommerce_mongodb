@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { useCart } from "../components/CartProvider";
 
@@ -15,6 +15,31 @@ export default function CheckoutPage() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (res.ok && data.user) {
+          setUser(data.user);
+          setFormData((current) => ({
+            ...current,
+            customerName: data.user.name || current.customerName,
+            phone: data.user.phone || current.phone,
+          }));
+        }
+      } catch (error) {
+        console.error("Auth fetch failed", error);
+      } finally {
+        setAuthLoading(false);
+      }
+    }
+
+    loadUser();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,6 +47,11 @@ export default function CheckoutPage() {
   };
 
   const handleOrder = async () => {
+    if (!user) {
+      setMessage("Please login to place an order.");
+      return;
+    }
+
     if (!formData.customerName || !formData.phone || !formData.address) {
       setMessage(
         "Please fill in your name, phone number, and delivery address.",
@@ -149,9 +179,22 @@ export default function CheckoutPage() {
               {message ? (
                 <p className="mt-4 text-sm text-[#6d3b1f]">{message}</p>
               ) : null}
+              {!authLoading && !user ? (
+                <div className="mt-4 rounded-3xl border border-[#f2dfcb] bg-[#fff3e8] p-4 text-center text-[#6d3b1f]">
+                  <p className="mb-3">
+                    You must be logged in to place an order.
+                  </p>
+                  <Link
+                    href="/auth/login"
+                    className="rounded-full bg-[#b85c38] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#9d4628]"
+                  >
+                    Login to checkout
+                  </Link>
+                </div>
+              ) : null}
               <button
                 onClick={handleOrder}
-                disabled={loading}
+                disabled={loading || !user}
                 className="mt-6 w-full rounded-full bg-[#b85c38] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#9d4628] disabled:cursor-not-allowed disabled:bg-[#d9a37f]"
               >
                 {loading ? "Placing order..." : "Place order"}

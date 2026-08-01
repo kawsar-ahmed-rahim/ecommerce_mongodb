@@ -1,9 +1,43 @@
 import connectDB from "@/lib/db";
 import { ensureDefaultAdmin } from "@/lib/auth";
+import Category from "@/models/Category";
 import Product from "@/models/Product";
 export async function GET() {
   await connectDB();
   await ensureDefaultAdmin();
+
+  await Category.deleteMany();
+  await Category.insertMany([
+    {
+      name: "Footwear",
+      slug: "footwear",
+      description: "Everyday shoes, sandals, and athletic wear for society living.",
+      image: "https://picsum.photos/500/300?category=footwear",
+      isActive: true,
+    },
+    {
+      name: "Clothing",
+      slug: "clothing",
+      description: "Comfortable clothing and wardrobe essentials for daily life.",
+      image: "https://picsum.photos/500/300?category=clothing",
+      isActive: true,
+    },
+    {
+      name: "Accessories",
+      slug: "accessories",
+      description: "Practical accessories and lifestyle items for every resident.",
+      image: "https://picsum.photos/500/300?category=accessories",
+      isActive: true,
+    },
+    {
+      name: "Electronics",
+      slug: "electronics",
+      description: "Useful gadgets, chargers, and small electronics for home use.",
+      image: "https://picsum.photos/500/300?category=electronics",
+      isActive: true,
+    },
+  ]);
+
   const products = await Product.find();
   await Product.deleteMany();
   await Product.insertMany([

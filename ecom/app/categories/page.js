@@ -1,33 +1,55 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 
-const categories = [
+const placeholderCategories = [
   {
-    title: "Daily Essentials",
-    description: "Groceries, cleaning supplies, and home basics for every day.",
-    accent: "bg-[#fff3e8]",
+    name: "Footwear",
+    description: "Everyday shoes and sandals for society living.",
+    image: "https://picsum.photos/500/300?category=footwear",
   },
   {
-    title: "Lifestyle Picks",
-    description: "Fashion, accessories, and comfort items for your routine.",
-    accent: "bg-[#eef5e8]",
+    name: "Clothing",
+    description: "Comfortable clothing and wardrobe essentials.",
+    image: "https://picsum.photos/500/300?category=clothing",
   },
   {
-    title: "Tech & Gadgets",
-    description: "Useful gadgets, chargers, and smart devices for convenience.",
-    accent: "bg-[#f8efe6]",
+    name: "Accessories",
+    description: "Useful accessories for daily convenience.",
+    image: "https://picsum.photos/500/300?category=accessories",
   },
   {
-    title: "Fitness & Wellness",
-    description:
-      "Fitness gear, wellness tools, and health-friendly essentials.",
-    accent: "bg-[#fef7e8]",
+    name: "Electronics",
+    description: "Everyday electronics and home gadgets.",
+    image: "https://picsum.photos/500/300?category=electronics",
   },
 ];
 
 export default function CategoriesPage() {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await fetch("/api/categories");
+        const data = await res.json();
+        setCategories(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to load categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadCategories();
+  }, []);
+
+  const categoriesToDisplay =
+    categories.length > 0 ? categories : placeholderCategories;
+
   return (
     <main className="min-h-screen bg-[#fcf7f1] text-[#2f241d]">
       <Navbar />
@@ -41,27 +63,46 @@ export default function CategoriesPage() {
           </h1>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {categories.map((category) => (
-            <div
-              key={category.title}
-              className={`rounded-4xl border border-[#ecd8c3] p-6 shadow-sm ${category.accent}`}
-            >
-              <h2 className="text-xl font-semibold text-[#2f241d]">
-                {category.title}
-              </h2>
-              <p className="mt-2 text-sm leading-7 text-[#6f5848]">
-                {category.description}
-              </p>
-              <Link
-                href="/"
-                className="mt-5 inline-block rounded-full bg-[#b85c38] px-4 py-2 text-sm font-semibold text-white"
+        {loading ? (
+          <div className="rounded-4xl border border-[#ecd8c3] bg-white p-10 text-center shadow-sm">
+            Loading categories...
+          </div>
+        ) : categoriesToDisplay.length === 0 ? (
+          <div className="rounded-4xl border border-[#ecd8c3] bg-white p-10 text-center shadow-sm text-[#6f5848]">
+            No categories available. Please seed the database or add a category from the admin panel.
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2">
+            {categoriesToDisplay.map((category) => (
+              <div
+                key={category._id || category.name}
+                className="group rounded-4xl border border-[#ecd8c3] bg-white shadow-sm transition hover:-translate-y-1"
               >
-                Browse items
-              </Link>
-            </div>
-          ))}
-        </div>
+                <div className="h-48 overflow-hidden rounded-t-4xl">
+                  <img
+                    src={category.image || "https://picsum.photos/500/300?blur=2"}
+                    alt={category.name}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="p-6">
+                  <h2 className="text-xl font-semibold text-[#2f241d]">
+                    {category.name}
+                  </h2>
+                  <p className="mt-2 text-sm leading-7 text-[#6f5848]">
+                    {category.description || "Browse products in this category."}
+                  </p>
+                  <Link
+                    href="/"
+                    className="mt-5 inline-block rounded-full bg-[#b85c38] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#9d4628]"
+                  >
+                    Browse items
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );

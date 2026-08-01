@@ -15,10 +15,10 @@ export async function GET(request, { params }) {
       return Response.json({ error: "Order not found" }, { status: 404 });
     }
 
-    if (
-      user.role !== "admin" &&
-      String(order.phone || "") !== String(user.phone || "")
-    ) {
+    const isOwner = order.user && String(order.user) === String(user._id);
+    const isPhoneMatch = String(order.phone || "") === String(user.phone || "");
+
+    if (user.role !== "admin" && !isOwner && !isPhoneMatch) {
       return Response.json({ error: "Unauthorized" }, { status: 403 });
     }
 

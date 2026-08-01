@@ -12,12 +12,23 @@ export function CartProvider({ children }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const stored = window.localStorage.getItem("society-market-cart");
-    if (stored) {
+    const storedItems = window.localStorage.getItem("society-market-cart");
+    if (storedItems) {
       try {
-        setItems(JSON.parse(stored));
+        setItems(JSON.parse(storedItems));
       } catch {
         window.localStorage.removeItem("society-market-cart");
+      }
+    }
+
+    const storedWishlist = window.localStorage.getItem(
+      "society-market-wishlist",
+    );
+    if (storedWishlist) {
+      try {
+        setWishlist(JSON.parse(storedWishlist));
+      } catch {
+        window.localStorage.removeItem("society-market-wishlist");
       }
     }
   }, []);
@@ -27,6 +38,15 @@ export function CartProvider({ children }) {
       window.localStorage.setItem("society-market-cart", JSON.stringify(items));
     }
   }, [items]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        "society-market-wishlist",
+        JSON.stringify(wishlist),
+      );
+    }
+  }, [wishlist]);
 
   const addToCart = (product) => {
     setItems((currentItems) => {

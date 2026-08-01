@@ -6,7 +6,7 @@ const AUTH_SECRET = process.env.AUTH_SECRET || "society-market-secret";
 export const DEFAULT_ADMIN_EMAIL = "admin@example.com";
 export const DEFAULT_ADMIN_PASSWORD = "password";
 
-function hashPassword(password) {
+export function hashPassword(password) {
   return crypto
     .createHash("sha256")
     .update(`${AUTH_SECRET}:${String(password)}`)

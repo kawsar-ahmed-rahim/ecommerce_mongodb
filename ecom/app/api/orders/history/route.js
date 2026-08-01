@@ -10,9 +10,11 @@ export async function GET(request) {
     }
 
     await connectDB();
-    const orders = await Order.find({ phone: user.phone || "" })
-      .sort({ createdAt: -1 })
-      .lean();
+    const query = {
+      $or: [{ user: user._id }, { phone: user.phone || "" }],
+    };
+
+    const orders = await Order.find(query).sort({ createdAt: -1 }).lean();
 
     return Response.json(orders);
   } catch (error) {

@@ -1,15 +1,24 @@
 import connectDB from "@/lib/db";
 import Order from "@/models/Order";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 export async function POST(request) {
   try {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { customerName, phone, address, deliveryNotes, items, subtotal } =
       body;
 
+    const effectiveName = customerName || user.name || "";
+    const effectivePhone = phone || user.phone || "";
+
     if (
-      !customerName ||
-      !phone ||
+      !effectiveName ||
+      !effectivePhone ||
       !address ||
       !Array.isArray(items) ||
       items.length === 0
@@ -23,8 +32,9 @@ export async function POST(request) {
     await connectDB();
 
     const order = await Order.create({
-      customerName,
-      phone,
+      user: user._id,
+      customerName: effectiveName,
+      phone: effectivePhone,
       address,
       deliveryNotes: deliveryNotes || "",
       items: items.map((item) => ({
@@ -44,8 +54,13 @@ export async function POST(request) {
   }
 }
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const user = await getAuthenticatedUser(request);
+    if (!user || user.role !== "admin") {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     await connectDB();
     const orders = await Order.find().sort({ createdAt: -1 }).lean();
     return Response.json(orders);
