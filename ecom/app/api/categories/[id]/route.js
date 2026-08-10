@@ -2,8 +2,9 @@ import connectDB from "@/lib/db";
 import Category from "@/models/Category";
 import { getAuthenticatedUser } from "@/lib/auth";
 
-export async function PUT(request, { params }) {
+export async function PUT(request, context) {
   try {
+    const { params } = await context;
     const user = await getAuthenticatedUser(request);
     if (!user || user.role !== "admin") {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -38,8 +39,9 @@ export async function PUT(request, { params }) {
   }
 }
 
-export async function DELETE(request, { params }) {
+export async function DELETE(request, context) {
   try {
+    const { params } = await context;
     const user = await getAuthenticatedUser(request);
     if (!user || user.role !== "admin") {
       return Response.json({ error: "Unauthorized" }, { status: 401 });

@@ -85,6 +85,7 @@ export function CartProvider({ children }) {
   };
 
   const clearCart = () => setItems([]);
+  const clearWishlist = () => setWishlist([]);
 
   const toggleWishlist = (product) => {
     setWishlist((currentWishlist) => {
@@ -114,6 +115,7 @@ export function CartProvider({ children }) {
         updateQuantity,
         removeFromCart,
         clearCart,
+        clearWishlist,
         subtotal,
         itemCount,
         wishlist,

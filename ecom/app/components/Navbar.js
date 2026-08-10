@@ -15,7 +15,7 @@ const links = [
 ];
 
 export default function Navbar() {
-  const { itemCount, wishlist } = useCart();
+  const { itemCount, wishlist, clearWishlist } = useCart();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -34,6 +34,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    clearWishlist();
     setUser(null);
     window.location.href = "/";
   };
@@ -104,7 +105,7 @@ export default function Navbar() {
                   href="/admin"
                   className="text-sm font-semibold text-[#6d3b1f]"
                 >
-                  Admin
+                  Dashboard
                 </Link>
               ) : null}
               <button

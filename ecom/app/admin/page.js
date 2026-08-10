@@ -29,39 +29,48 @@ export default function AdminPage() {
   const [editingCategoryId, setEditingCategoryId] = useState(null);
 
   useEffect(() => {
-    loadAdminData();
-  }, []);
+    const controller = new AbortController();
 
-  async function loadAdminData() {
-    try {
-      const [meRes, productsRes, categoriesRes, ordersRes] = await Promise.all([
-        fetch("/api/auth/me"),
-        fetch("/api/products"),
-        fetch("/api/categories"),
-        fetch("/api/orders"),
-      ]);
+    const loadAdminData = async () => {
+      try {
+        const [meRes, productsRes, categoriesRes, ordersRes] =
+          await Promise.all([
+            fetch("/api/auth/me", { signal: controller.signal }),
+            fetch("/api/products", { signal: controller.signal }),
+            fetch("/api/categories", { signal: controller.signal }),
+            fetch("/api/orders", { signal: controller.signal }),
+          ]);
 
-      const meData = await meRes.json();
-      const productsData = await productsRes.json();
-      const categoriesData = await categoriesRes.json();
-      const ordersData = await ordersRes.json();
+        const meData = await meRes.json();
+        const productsData = await productsRes.json();
+        const categoriesData = await categoriesRes.json();
+        const ordersData = await ordersRes.json();
 
-      if (!meData.user || meData.user.role !== "admin") {
-        setUser(null);
-        setLoading(false);
-        return;
+        if (!controller.signal.aborted) {
+          if (!meData.user || meData.user.role !== "admin") {
+            setUser(null);
+            return;
+          }
+
+          setUser(meData.user);
+          setProducts(Array.isArray(productsData) ? productsData : []);
+          setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+          setOrders(Array.isArray(ordersData) ? ordersData : []);
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error(error);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
+    };
 
-      setUser(meData.user);
-      setProducts(Array.isArray(productsData) ? productsData : []);
-      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-      setOrders(Array.isArray(ordersData) ? ordersData : []);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }
+    void loadAdminData();
+    return () => controller.abort();
+  }, []);
 
   async function handleProductSubmit(e) {
     e.preventDefault();
@@ -145,6 +154,11 @@ export default function AdminPage() {
   }
 
   async function handleDeleteCategory(categoryId) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this category? This action cannot be undone.",
+    );
+    if (!confirmed) return;
+
     try {
       const res = await fetch(`/api/categories/${categoryId}`, {
         method: "DELETE",
@@ -170,6 +184,11 @@ export default function AdminPage() {
   }
 
   async function handleDeleteProduct(productId) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this product? This action cannot be undone.",
+    );
+    if (!confirmed) return;
+
     try {
       const res = await fetch(`/api/products/${productId}`, {
         method: "DELETE",
