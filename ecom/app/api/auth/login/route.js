@@ -1,6 +1,7 @@
 import connectDB from "@/lib/db";
 import {
   createSessionToken,
+  ensureDefaultAdmin,
   serializeSessionCookie,
   verifyPassword,
   sanitizeUser,
@@ -20,6 +21,7 @@ export async function POST(request) {
     }
 
     await connectDB();
+    await ensureDefaultAdmin();
 
     const user = await User.findOne({ email: String(email).toLowerCase() });
     if (!user || !verifyPassword(password, user.password)) {

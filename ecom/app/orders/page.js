@@ -94,12 +94,6 @@ export default function OrdersPage() {
                     </div>
                   ))}
                 </div>
-                <Link
-                  href={`/orders/${order._id}`}
-                  className="mt-4 inline-block rounded-full bg-[#b85c38] px-4 py-2 text-sm font-semibold text-white"
-                >
-                  View details
-                </Link>
               </div>
             ))}
           </div>
