@@ -35,7 +35,10 @@ export default function AdminPage() {
       try {
         const [meRes, productsRes, categoriesRes, ordersRes] =
           await Promise.all([
-            fetch("/api/auth/me", { signal: controller.signal }),
+            fetch("/api/auth/me", {
+              signal: controller.signal,
+              credentials: "include",
+            }),
             fetch("/api/products", { signal: controller.signal }),
             fetch("/api/categories", { signal: controller.signal }),
             fetch("/api/orders", { signal: controller.signal }),
@@ -84,6 +87,7 @@ export default function AdminPage() {
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
           body: formData,
+          credentials: "include",
         });
         const uploadData = await uploadRes.json();
         if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
@@ -92,6 +96,7 @@ export default function AdminPage() {
 
       const res = await fetch("/api/products", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...productForm,
@@ -129,6 +134,7 @@ export default function AdminPage() {
           : "/api/categories",
         {
           method: editingCategoryId ? "PUT" : "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(categoryForm),
         },
@@ -162,6 +168,7 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/categories/${categoryId}`, {
         method: "DELETE",
+        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Unable to delete category");
@@ -192,6 +199,7 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/products/${productId}`, {
         method: "DELETE",
+        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Unable to delete product");
@@ -229,6 +237,7 @@ export default function AdminPage() {
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
           body: formData,
+          credentials: "include",
         });
         const uploadData = await uploadRes.json();
         if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
@@ -237,6 +246,7 @@ export default function AdminPage() {
 
       const res = await fetch(`/api/products/${editingProductId}`, {
         method: "PUT",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...productForm,
@@ -272,6 +282,7 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: "PUT",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });

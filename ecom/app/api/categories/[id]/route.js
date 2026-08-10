@@ -4,7 +4,7 @@ import { getAuthenticatedUser } from "@/lib/auth";
 
 export async function PUT(request, context) {
   try {
-    const { params } = await context;
+    const params = await context.params;
     const user = await getAuthenticatedUser(request);
     if (!user || user.role !== "admin") {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,7 +41,7 @@ export async function PUT(request, context) {
 
 export async function DELETE(request, context) {
   try {
-    const { params } = await context;
+    const params = await context.params;
     const user = await getAuthenticatedUser(request);
     if (!user || user.role !== "admin") {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
