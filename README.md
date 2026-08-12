@@ -99,7 +99,7 @@ society-market/
 
 ## 🔗 Live Demo
 
-👉 Live Website: https://ecommerce-mongodb-phi.vercel.app/
+👉 Live Website: https://ecommerce-mongodb-rde8r5shp-rahims-projects-82168372.vercel.app/
 
 ## 👨‍💻 Author
 
